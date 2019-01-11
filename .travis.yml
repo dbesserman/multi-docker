@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t dbesserman/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run dbesserman/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t dbesserman/multi-client ./client
+  - docker build -t dbesserman/multi-nginx ./nginx
+  - docker build -t dbesserman/multi-server ./server
+  - docker build -t dbesserman/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push dbesserman/multi-client
+  - docker push dbesserman/multi-nginx
+  - docker push dbesserman/multi-server
+  - docker push dbesserman/multi-worker
